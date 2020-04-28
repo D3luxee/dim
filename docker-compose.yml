@@ -1,0 +1,47 @@
+version: "3.7"
+
+services:
+  dim:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile-DIM
+    volumes:
+      - ./config:/etc/dim
+    depends_on:
+      - dim-db
+  dim-db:
+    image: mysql
+    restart: always
+    environment:
+       MYSQL_ROOT_PASSWORD: "securePassword"
+       MYSQL_DATABASE: "dim"
+       MYSQL_USER: "dim"
+       MYSQL_PASSWORD: "securePassword"
+  powerdns:
+    image: psitrax/powerdns:latest
+    environment:
+      MYSQL_DB: "pdns"
+      MYSQL_USER: "pdns"
+      MYSQL_PASS: "securePassword"
+      MYSQL_HOST: "pdns-db"
+      MYSQL_DNSSEC: "yes"
+#      MYSQL_AUTOCONF: "false"
+    depends_on:
+      - pdns-db
+    links:
+      - "pdns-db:mysql"
+  pdns-db:
+    image: mariadb:latest
+    restart: always
+    environment:
+       MYSQL_ROOT_PASSWORD: "securePassword"
+       MYSQL_DATABASE: "pdns"
+       MYSQL_USER: "pdns"
+       MYSQL_PASSWORD: "securePassword"
+    volumes:
+      - ./dim/pdns.sql:/docker-entrypoint-initdb.d/pdns.sql
+
+#  pdnsoutput:
+#    build:
+#      context: .
+#      dockerfile: docker/Dockerfile-pdnsoutput

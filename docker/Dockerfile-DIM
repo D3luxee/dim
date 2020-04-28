@@ -1,0 +1,24 @@
+FROM python:2-buster
+
+RUN apt-get update && apt-get install -y default-libmysqlclient-dev python-dev libsasl2-dev libldap2-dev gcc rsyslog python-pip
+
+
+COPY dim /dim/
+RUN cd dim && pip install -r requirements.txt
+RUN rm -rf /dim
+COPY dimcfg /etc/dim
+COPY .ndclirc .bashrc /root/
+COPY docker/entrypoint-dim.sh /entrypoint.sh
+
+ENV SQLALCHEMY_DATABASE_URI
+ENV AUTHENTICATION_METHOD="None"
+ENV LDAP_SERVER
+ENV LDAP_USER_DN="uid=%s"
+ENV LDAP_SEARCH_BASE
+ENV LDAP_USER_BASE
+ENV LDAP_DEPARTMENT_BASE
+ENV SECRET_KEY
+
+EXPOSE 5000
+
+ENTRYPOINT ["/entrypoint.sh"]
