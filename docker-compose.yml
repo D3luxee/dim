@@ -5,16 +5,22 @@ services:
     build:
       context: .
       dockerfile: docker/Dockerfile-DIM
-    volumes:
-      - ./config:/etc/dim
+    environment:
+       SQLALCHEMY_DATABASE_URI: "mysql://dim:securePassword@dim-db:3306/dimdb"
+       SECRET_KEY: "sdjfisdjfsfjlh2380u90sfdkl"
+#    volumes:
+#      - ./config:/etc/dim
     depends_on:
       - dim-db
+    restart: always
+    links:
+      - "dim-db:dim-db"
   dim-db:
-    image: mysql
+    image: mariadb:latest
     restart: always
     environment:
        MYSQL_ROOT_PASSWORD: "securePassword"
-       MYSQL_DATABASE: "dim"
+       MYSQL_DATABASE: "dimdb"
        MYSQL_USER: "dim"
        MYSQL_PASSWORD: "securePassword"
   powerdns:
@@ -25,7 +31,6 @@ services:
       MYSQL_PASS: "securePassword"
       MYSQL_HOST: "pdns-db"
       MYSQL_DNSSEC: "yes"
-#      MYSQL_AUTOCONF: "false"
     depends_on:
       - pdns-db
     links:
